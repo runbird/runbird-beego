@@ -2,6 +2,8 @@ package controllers
 
 import (
 	"github.com/astaxie/beego"
+	"github.com/astaxie/beego/logs"
+	"os"
 )
 
 type MainController struct {
@@ -9,8 +11,11 @@ type MainController struct {
 }
 
 func (this *MainController) Post() {
-	beego.Info("decrepted log")
-	this.Ctx.Output.Body([]byte("post method...."))
+	logs.Info("decrepted log")
+	body := this.Ctx.Output.Body([]byte("post method...."))
+	if body == nil {
+		os.Exit(1)
+	}
 }
 
 func (c *MainController) Get() {
