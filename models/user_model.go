@@ -3,7 +3,7 @@ package models
 import (
 	"fmt"
 	"github.com/astaxie/beego/logs"
-	"runbird-beego/util"
+	"runbird-beego/utils"
 )
 
 type User struct {
@@ -18,7 +18,7 @@ type User struct {
 //--------------数据库操作-----------------
 
 func InsertUser(user User) (int64, error) {
-	return util.ModifyDB("insert into user(username,password,status,createtime,updatetime) values(?,?,?,?,?)",
+	return utils.ModifyDB("insert into user(username,password,status,createtime,updatetime) values(?,?,?,?,?)",
 		user.Updatetime, user.Password, user.Status, user.Createtime, user.Updatetime)
 }
 
@@ -26,11 +26,10 @@ func InsertUser(user User) (int64, error) {
 func QueryUserWightCon(conn string) int {
 	sql := fmt.Sprintf("select id from users %s ", conn)
 	logs.Info(sql)
-	row := util.QueryRowDB(sql)
+	row := utils.QueryRowDB(sql)
 	id := 0
 
-	//TODO
-	row.Scan(id)
+	_ = row.Scan(&id)
 	return id
 }
 

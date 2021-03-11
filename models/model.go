@@ -5,7 +5,7 @@ import (
 	"github.com/astaxie/beego/logs"
 	"github.com/astaxie/beego/orm"
 	_ "github.com/go-sql-driver/mysql"
-	"runbird-beego/util"
+	"runbird-beego/utils"
 )
 
 func init() {
@@ -13,7 +13,7 @@ func init() {
 
 	//注册数据库驱动
 	driver := orm.RegisterDriver(driverName, orm.DRMySQL)
-	if driver == nil {
+	if driver != nil {
 		logs.Error("注册数据库驱动错误")
 	}
 
@@ -28,8 +28,8 @@ func init() {
 
 	err := orm.RegisterDataBase("default", driverName, dbConn)
 	if err != nil {
-		util.LogError("连接数据库出错")
+		utils.LogError("连接数据库出错")
 		return
 	}
-	util.LogError("连接数据库成功")
+	utils.LogInfo("连接数据库成功")
 }
