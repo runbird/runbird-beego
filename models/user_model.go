@@ -18,8 +18,8 @@ type User struct {
 //--------------数据库操作-----------------
 
 func InsertUser(user User) (int64, error) {
-	return utils.ModifyDB("insert into user(username,password,status,createtime,updatetime) values(?,?,?,?,?)",
-		user.Updatetime, user.Password, user.Status, user.Createtime, user.Updatetime)
+	return utils.ModifyDB("insert into users(username,password,status,createtime,updatetime) values(?,?,?,?,?)",
+		user.Username, user.Password, user.Status, user.Createtime, user.Updatetime)
 }
 
 //条件查询

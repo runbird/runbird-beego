@@ -29,7 +29,7 @@ func (this *RegisterController) Post() {
 	id := models.QueryUserWithUsername(username)
 	if id > 0 {
 		logs.Info("registed id:", id)
-		this.Data["json"] = map[string]interface{}{"code": 0, "content": "该用户已经注册！"}
+		this.Data["json"] = map[string]interface{}{"code": 0, "message": "该用户已经注册！"}
 		this.ServeJSON()
 		return
 	}
