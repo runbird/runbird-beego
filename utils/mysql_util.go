@@ -38,6 +38,7 @@ func InitMysql() {
 	}
 
 	CreateTableWithUser()
+	CreateTableWithArticle()
 }
 
 //操作数据库
@@ -66,7 +67,27 @@ func CreateTableWithUser() {
 		createtime INT(10),
 		updatetime INT(10)
 		);`
-	ModifyDB(sql)
+	_, e := ModifyDB(sql)
+	if e != nil {
+		logs.Error("create table users have a error")
+	}
+}
+
+//创建文章表
+func CreateTableWithArticle() {
+	sql := `create table if not exists article(
+		id int(4) primary key auto_increment not null,
+		title varchar(30),
+		author varchar(20),
+		tags varchar(30),
+		short varchar(255),
+		content longtext,
+		createtime int(10)
+		);`
+	_, e := ModifyDB(sql)
+	if e != nil {
+		logs.Error("create table article have a error")
+	}
 }
 
 func QueryRowDB(sql string) *sql.Row {
