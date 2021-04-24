@@ -12,7 +12,7 @@ type BaseController struct {
 }
 
 //判断是否登录
-func (this *BaseController) prepare() {
+func (this *BaseController) Prepare() {
 	loginuser := this.GetSession("loginuser")
 	logs.Info("get loginuser session: ", loginuser)
 	if loginuser != nil {
