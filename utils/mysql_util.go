@@ -1,9 +1,7 @@
 package utils
 
 import (
-	"crypto/md5"
 	"database/sql"
-	"fmt"
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/logs"
 )
@@ -94,6 +92,6 @@ func QueryRowDB(sql string) *sql.Row {
 	return db.QueryRow(sql)
 }
 
-func MD5(content string) string {
-	return fmt.Sprintf("%x", md5.Sum([]byte(content)))
+func QueryDB(sql string) (*sql.Rows, error) {
+	return db.Query(sql)
 }

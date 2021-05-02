@@ -10,16 +10,17 @@ import (
 type Article struct {
 	Id         int
 	Title      string
-	Author     string
 	Tags       string
 	Short      string
 	Content    string
+	Author     string
 	Createtime int64
 	Updatetime int64
 }
 
 func AddArticle(article Article) (int64, error) {
 	i, e := InsertArticle(article)
+	SetArticleRowsNum()
 	return i, e
 }
 
@@ -35,48 +36,68 @@ func InsertArticle(article Article) (int64, error) {
 	return row, e
 }
 
+//根据页码查询文章
 func FindArticleWithPage(page int) ([]Article, error) {
-	//配置文件中每页获取文章的数量
-	num, err := beego.AppConfig.Int("articleListPageNum")
-	if err != nil {
-		logs.Error("配置文件中每页获取文章的数量异常:{}", err)
+	num, e := beego.AppConfig.Int("articleListPageNum")
+	if e != nil {
+		logs.Error("lack of beego.AppConfig.articleListPageNum .. {}", e)
 	}
 	page--
-	logs.Debug(">>>>>>>> page:{}", page)
-	return QueryArticleWithPaeg(page, num)
+	logs.Info("-----> FindArticleWithPage :", page)
+	return QueryArticleWithPage(page, num)
 }
 
-//分页查询数据库
-//limit分页查询 limit m,n
-//m代表从多少位开始获取和id值无关
-//n代表获取多少条数据
-func QueryArticleWithPaeg(page, num int) ([]Article, error) {
-	logs.Debug("limit %d , %d", page*num, num)
-	sql := fmt.Sprintf("limit %d,%d", page*num, num)
-	return queryArticleWithConn(sql)
+func QueryArticleWithPage(page, num int) ([]Article, error) {
+	sql := fmt.Sprintf("limit %d, %d", page*num, num)
+	return QueryArticleWithConn(sql)
 }
 
-func queryArticleWithConn(sql string) ([]Article, error) {
-	sql = "select id,titile,tags,content,author,createtime from article " + sql
-	rows, err := utils.QueryDB(sql)
-	if err != nil {
-		return nil, err
+func QueryArticleWithConn(sql string) ([]Article, error) {
+	sql = "select id,title,tags,short,content,author,createtime,updatetime from article " + sql
+	rows, e := utils.QueryDB(sql)
+	if e != nil {
+		return nil, e
 	}
 	var artList []Article
 	for rows.Next() {
 		id := 0
 		title := ""
-		tages := ""
+		tags := ""
 		short := ""
 		content := ""
 		author := ""
 		var createtime int64
-		createtime = 0
 		var updatetime int64
+		createtime = 0
 		updatetime = 0
-		rows.Scan(&id, &title, &tages, &short, &content, &author, &createtime, &updatetime)
-		art := Article{id, title, author, tages, short, content, createtime, updatetime}
+		rows.Scan(&id, &title, &tags, &short, &content, &author, &createtime, &updatetime)
+		art := Article{id, title, tags, short, content, author, createtime, updatetime}
 		artList = append(artList, art)
 	}
 	return artList, nil
+}
+
+//翻页
+//存储表的行数
+var articleRowsNum = 0
+
+//只有首次获取行数的时候采取统计表里数据行数
+func GetArticleRowsNum() int {
+	if articleRowsNum == 0 {
+		articleRowsNum = QueryArticleRowNum()
+	}
+	return articleRowsNum
+}
+
+func QueryArticleRowNum() int {
+	rows, e := utils.QueryDB("select count(*) from article")
+	num := 0
+	if e != nil {
+		rows.Scan(&num)
+	}
+	return num
+}
+
+func SetArticleRowsNum() {
+	articleRowsNum = QueryArticleRowNum()
 }

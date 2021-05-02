@@ -2,12 +2,16 @@ package models
 
 import (
 	"bytes"
+	"fmt"
+	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/logs"
 	"html/template"
+	"runbird-beego/utils"
 	"strconv"
 	"strings"
 )
 
+//前端页面所需对象
 type HomeBlockParam struct {
 	Id         int
 	Title      string
@@ -33,8 +37,14 @@ type TagLink struct {
 	TagUrl  string
 }
 
-//我们需要将从数据库中查询出来的数据，转为对应的结构体对象，所以先设计结构体，这里我们需要考虑如果用户是登录状态，那么是可以修改或删除某一篇文章。
-//当然，如果没有登录，那么只能查看。所以在设计结构体的时候，我们直接创建了修改和删除的链接字段。
+type HomeFooterPageCode struct {
+	HasPre   bool
+	HasNext  bool
+	ShowPage string
+	PreLink  string
+	NextLink string
+}
+
 func MakeHomeBlocks(articles []Article, isLogin bool) template.HTML {
 	htmlHome := ""
 	for _, art := range articles {
@@ -42,7 +52,6 @@ func MakeHomeBlocks(articles []Article, isLogin bool) template.HTML {
 		homeParam.Id = art.Id
 		homeParam.Title = art.Title
 		homeParam.Tags = createTagsLinks(art.Tags)
-		logs.Info("---->tag :{}", art.Tags)
 		homeParam.Short = art.Short
 		homeParam.Content = art.Content
 		homeParam.Author = art.Author
@@ -52,23 +61,55 @@ func MakeHomeBlocks(articles []Article, isLogin bool) template.HTML {
 		homeParam.DeleteLink = "/article/delete?id=" + strconv.Itoa(art.Id)
 		homeParam.IsLogin = isLogin
 
-		t, err := template.ParseFiles("views/block/home_block.html")
-		if err != nil {
-			logs.Error("MakeHomeBlocks have a error:{}", err)
-		}
+		files, e := template.ParseFiles("views/block/home_block.html")
 		buffer := bytes.Buffer{}
-		t.Execute(&buffer, homeParam)
+		e = files.Execute(&buffer, homeParam)
+		if e != nil {
+			logs.Error("home modle execute template error :{}", e)
+		}
 		htmlHome += buffer.String()
 	}
-	logs.Info("htmlHome:--->", htmlHome)
+	logs.Info("htmlHome :{}", htmlHome)
 	return template.HTML(htmlHome)
 }
 
 func createTagsLinks(tags string) []TagLink {
-	var tagsLink []TagLink
-	tagsParam := strings.Split(tags, "&")
-	for _, tag := range tagsParam {
-		tagsLink = append(tagsLink, TagLink{tag, "/?tag=" + tag})
+	var tagLink []TagLink
+	tagsPara := strings.Split(tags, "&")
+	for _, tag := range tagsPara {
+		tagLink = append(tagLink, TagLink{
+			TagName: tag,
+			TagUrl:  "/?tag=" + tag,
+		})
 	}
-	return tagsLink
+	return tagLink
+}
+
+//翻页
+func ConfigHomeFooterPageCode(page int) HomeFooterPageCode {
+	pageCode := HomeFooterPageCode{}
+	num := GetArticleRowsNum()
+	pageRow, _ := beego.AppConfig.Int("articleListPageNum")
+	//总页数
+	allPageNum := (num-1)/pageRow + 1
+	pageCode.ShowPage = fmt.Sprintf("%d/%d", page, allPageNum)
+
+	//首页
+	if page <= 1 {
+		pageCode.HasPre = false
+	} else {
+		pageCode.HasPre = true
+	}
+
+	//尾页
+	//当前页数大于总页数，那么下一页不能点击
+	if page >= allPageNum {
+		pageCode.HasNext = false
+	} else {
+		pageCode.HasNext = true
+	}
+
+	pageCode.PreLink = "/?page=" + strconv.Itoa(page-1)
+	pageCode.NextLink = "/?page=" + strconv.Itoa(page+1)
+	return pageCode
 }
