@@ -12,7 +12,7 @@ func SwitchTimeStampToData(timestamp int64) string {
 }
 
 func SwitchMarkDownToHtml(content string) template.HTML {
-
+	return template.HTML("hello")
 }
 
 func MD5(content string) string {
